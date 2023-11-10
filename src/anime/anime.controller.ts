@@ -40,4 +40,9 @@ export class AnimeController {
   searchAnime(@Body() body: SearchAnimeDto) {
     return this.animeService?.searchAnime(body);
   }
+
+  @Get('metadata')
+  getMetadata() {
+    return this?.animeService?.getMetadata();
+  }
 }

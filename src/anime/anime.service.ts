@@ -36,26 +36,17 @@ export class AnimeService {
       return true;
     }
 
-    const [exist_countries, _, categories_id_list] = await Promise.all([
-      (async () => {
-        const data = await this.prisma?.countries?.findFirst({
-          where: {
-            name: countries?.trim(),
-          },
-        });
-
-        if (data?.id) {
-          return data;
-        }
-
-        const new_data = await this?.prisma?.countries?.create({
-          data: {
-            name: countries?.trim(),
-          },
-        });
-
-        return new_data;
-      })(),
+    const [_, __] = await Promise.all([
+      countries &&
+        this.prisma?.countries?.createMany({
+          data: [
+            ...countries
+              ?.split(',')
+              ?.filter((item) => item?.trim())
+              ?.map((item) => ({ name: item?.trim() })),
+          ],
+          skipDuplicates: true,
+        }),
       categories &&
         this.prisma?.categories?.createMany({
           data: [
@@ -66,6 +57,9 @@ export class AnimeService {
           ],
           skipDuplicates: true,
         }),
+    ]);
+
+    const [categories_id_list, countries_id_list] = await Promise.all([
       Promise.all(
         categories
           ?.split(',')
@@ -82,6 +76,22 @@ export class AnimeService {
             };
           }),
       ),
+      Promise.all(
+        countries
+          ?.split(',')
+          ?.filter((item) => item?.trim())
+          ?.map(async (item) => {
+            const exits = await this?.prisma?.countries?.findFirst({
+              where: {
+                name: item?.trim(),
+              },
+            });
+
+            return {
+              countryId: exits?.id,
+            };
+          }),
+      ),
     ]);
 
     const new_anime = await this.prisma?.animes?.create({
@@ -92,8 +102,8 @@ export class AnimeService {
         title,
         actors,
         countries: {
-          create: {
-            countryId: exist_countries?.id,
+          createMany: {
+            data: countries_id_list?.filter((item) => item?.countryId),
           },
         },
         description,
@@ -296,6 +306,30 @@ export class AnimeService {
       pagination: {
         page_current: page,
         has_next_page: animes?.length >= limit ? true : false,
+      },
+    };
+  }
+
+  async getMetadata() {
+    const [categories, countries] = await Promise.all([
+      this.prisma?.categories?.findMany({
+        select: {
+          name: true,
+          id: true,
+        },
+      }),
+      this.prisma?.countries?.findMany({
+        select: {
+          id: true,
+          name: true,
+        },
+      }),
+    ]);
+
+    return {
+      data: {
+        categories,
+        countries,
       },
     };
   }

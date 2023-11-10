@@ -31,4 +31,13 @@ export class CrawlController {
   crawlMetadata() {
     return this.crawlService?.crawlMetadata();
   }
+
+  @Post('insert/all')
+  insertAll() {
+    return Promise.all(
+      Array.from(Array(132).keys())?.map(async (item) => {
+        return await this.insertAnimeToDatabase({ page: item + 1 });
+      }),
+    );
+  }
 }

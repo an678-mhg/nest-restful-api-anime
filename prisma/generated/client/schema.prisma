@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+  output          = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Animes {
+  id          Int                  @id @default(autoincrement())
+  title       String               @unique
+  other_title String               @unique
+  slug        String               @unique
+  time        String?
+  quality     String?
+  language    String?
+  director    String?
+  actors      String?
+  year        String?
+  description String?
+  image_url   String
+  categories  CategoriesOnAnimes[]
+  countries   CountriesOnAnimes[]
+  episodes    Episodes[]
+  created_at  DateTime             @default(now())
+  updated_at  DateTime             @updatedAt
+
+  @@map("animes")
+}
+
+model Categories {
+  id         Int                  @id @default(autoincrement())
+  name       String               @unique
+  animes     CategoriesOnAnimes[]
+  created_at DateTime             @default(now())
+  updated_at DateTime             @updatedAt
+
+  @@map("categories")
+}
+
+model Countries {
+  id         Int                 @id @default(autoincrement())
+  name       String              @unique
+  animes     CountriesOnAnimes[]
+  created_at DateTime            @default(now())
+  updated_at DateTime            @updatedAt
+
+  @@map("countries")
+}
+
+model Episodes {
+  id         Int      @id @default(autoincrement())
+  name       String
+  url        String
+  type       String
+  anime      Animes?  @relation(fields: [animeId], references: [id])
+  animeId    Int?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("episodes")
+}
+
+model CategoriesOnAnimes {
+  anime      Animes     @relation(fields: [animeId], references: [id])
+  animeId    Int
+  category   Categories @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@id([animeId, categoryId])
+  @@map("categories_on_animes")
+}
+
+model CountriesOnAnimes {
+  anime     Animes    @relation(fields: [animeId], references: [id])
+  animeId   Int
+  country   Countries @relation(fields: [countryId], references: [id])
+  countryId Int
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@id([animeId, countryId])
+  @@map("countries_on_animes")
+}
