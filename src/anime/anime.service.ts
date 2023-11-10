@@ -147,19 +147,34 @@ export class AnimeService {
     skip: number,
     page: number,
   ) {
+    const filter = {};
+
+    if (category_id) {
+      // @ts-ignore
+      filter.categories = {
+        some: {
+          categoryId: category_id,
+        },
+      };
+    }
+
+    if (country_id) {
+      // @ts-ignore
+      filter.countries = {
+        some: {
+          countryId: country_id,
+        },
+      };
+    }
+
+    if (year) {
+      // @ts-ignore
+      filter.year = year;
+    }
+
     const animes = await this.prisma?.animes?.findMany({
       where: {
-        categories: {
-          some: {
-            categoryId: category_id,
-          },
-        },
-        countries: {
-          some: {
-            countryId: country_id,
-          },
-        },
-        year,
+        ...filter,
       },
       select: {
         id: true,

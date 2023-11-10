@@ -12,18 +12,12 @@ export class GetAnimeBySlugDto {
 
 export class FilterAnimeDto {
   @ApiProperty({ default: 1 })
-  @IsNotEmpty()
-  @IsString()
   category_id: string;
 
   @ApiProperty({ default: 1 })
-  @IsNotEmpty()
-  @IsString()
   country_id: string;
 
   @ApiProperty({ default: 2023 })
-  @IsNotEmpty()
-  @IsString()
   year: string;
 
   @ApiProperty({ default: 20 })
