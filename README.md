@@ -7,9 +7,9 @@
 <p align="center"><strong>A restful API build with NestJS, Prisma, ...</strong></p>
 
 <p align="center">
-  <img alt="Stars" src="https://badgen.net/github/stars/an678-mhg/tiktok-clone">
-  <img alt="Forks" src="https://badgen.net/github/forks/an678-mhg/tiktok-clone">
-  <img alt="Issues" src="https://badgen.net/github/issues/an678-mhg/tiktok-clone">
+  <img alt="Stars" src="https://badgen.net/github/stars/an678-mhg/nest-restful-api-anime">
+  <img alt="Forks" src="https://badgen.net/github/forks/an678-mhg/nest-restful-api-anime">
+  <img alt="Issues" src="https://badgen.net/github/issues/an678-mhg/nest-restful-api-anime">
 </p>
 
 ## Description
