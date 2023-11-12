@@ -7597,11 +7597,11 @@ export namespace Prisma {
   export type AnimesWhereUniqueInput = Prisma.AtLeast<{
     id?: number
     title?: string
-    other_title?: string
     slug?: string
     AND?: AnimesWhereInput | AnimesWhereInput[]
     OR?: AnimesWhereInput[]
     NOT?: AnimesWhereInput | AnimesWhereInput[]
+    other_title?: StringFilter<"Animes"> | string
     time?: StringNullableFilter<"Animes"> | string | null
     quality?: StringNullableFilter<"Animes"> | string | null
     language?: StringNullableFilter<"Animes"> | string | null
@@ -7615,7 +7615,7 @@ export namespace Prisma {
     categories?: CategoriesOnAnimesListRelationFilter
     countries?: CountriesOnAnimesListRelationFilter
     episodes?: EpisodesListRelationFilter
-  }, "id" | "title" | "other_title" | "slug">
+  }, "id" | "title" | "slug">
 
   export type AnimesOrderByWithAggregationInput = {
     id?: SortOrder

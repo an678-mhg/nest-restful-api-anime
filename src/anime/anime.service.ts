@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AnimeCrawlDetail } from 'src/contanst';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SearchAnimeDto } from './dto';
+import { Animes, Prisma } from '@prisma/client';
 
 @Injectable()
 export class AnimeService {
@@ -29,6 +30,8 @@ export class AnimeService {
     const exist_anime = await this?.prisma?.animes?.findFirst({
       where: {
         title,
+        other_title,
+        slug,
       },
     });
 
@@ -97,7 +100,7 @@ export class AnimeService {
     const new_anime = await this.prisma?.animes?.create({
       data: {
         image_url,
-        other_title,
+        other_title: other_title || title,
         slug,
         title,
         actors,
@@ -285,36 +288,22 @@ export class AnimeService {
   }
 
   async searchAnime(body: SearchAnimeDto) {
-    const q = body?.q;
+    const q = body?.q?.replace(/\s+/g, ' & ')?.toLocaleLowerCase();
 
     const limit = Number(body?.limit) || 20;
     const page = Number(body?.page) || 1;
     const skip = (page - 1) * limit;
 
-    const animes = await this.prisma?.animes?.findMany({
-      where: {
-        title: {
-          search: q,
-        },
-        other_title: {
-          search: q,
-        },
-        description: {
-          search: q,
-        },
-      },
-      select: {
-        id: true,
-        image_url: true,
-        slug: true,
-        title: true,
-        other_title: true,
-        description: true,
-        year: true,
-      },
-      take: limit <= 20 ? limit : 20,
-      skip,
-    });
+    const animes = (await this.prisma?.$queryRaw(
+      Prisma.sql`
+        SELECT * 
+        FROM animes 
+        WHERE to_tsvector('english', lower(title) || ' ' || lower(other_title) || ' ' || lower(description)) @@ to_tsquery('english', ${q})
+        ORDER BY updated_at DESC
+        LIMIT ${limit}
+        OFFSET ${skip};
+      `,
+    )) as Animes[];
 
     return {
       data: animes,

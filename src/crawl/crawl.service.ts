@@ -13,7 +13,7 @@ export class CrawlService {
   async crawlAnime(page: number): Promise<AnimeCrawl[]> {
     const response = await this.requestService
       .request()
-      .get(`/danh-sach/hoat-hinh?page=${page}`);
+      .get(`/tim-kiem?keyword=sky+x+family`);
 
     if (!response?.data) throw ConflictException;
 
