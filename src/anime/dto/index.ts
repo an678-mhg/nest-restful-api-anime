@@ -11,13 +11,13 @@ export class GetAnimeBySlugDto {
 }
 
 export class FilterAnimeDto {
-  @ApiProperty({ default: 1 })
-  category_id: string;
+  @ApiProperty({ default: ['15', '4', '1'] })
+  category_id: string[];
 
-  @ApiProperty({ default: 1 })
-  country_id: string;
+  @ApiProperty({ default: ['1', '2'] })
+  country_id: string[];
 
-  @ApiProperty({ default: 2023 })
+  @ApiProperty({ default: '2023' })
   year: string;
 
   @ApiProperty({ default: 20 })

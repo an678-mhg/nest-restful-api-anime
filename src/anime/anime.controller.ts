@@ -18,8 +18,8 @@ export class AnimeController {
 
   @Post('filter')
   filterAnime(@Body() body: FilterAnimeDto) {
-    const category_id = Number(body?.category_id);
-    const country_id = Number(body?.country_id);
+    const category_id = body?.category_id;
+    const country_id = body?.country_id;
     const year = body?.year;
 
     const limit = Number(body?.limit) || 20;

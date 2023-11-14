@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { AnimeCrawlDetail } from 'src/contanst';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SearchAnimeDto } from './dto';
-import { Animes, Prisma } from '@prisma/client';
 
 @Injectable()
 export class AnimeService {
@@ -143,8 +142,8 @@ export class AnimeService {
   }
 
   async filterAnime(
-    category_id: number,
-    country_id: number,
+    category_id: string[],
+    country_id: string[],
     year: string,
     limit: number,
     skip: number,
@@ -152,20 +151,24 @@ export class AnimeService {
   ) {
     const filter = {};
 
-    if (category_id) {
+    if (category_id?.length > 0) {
       // @ts-ignore
       filter.categories = {
         some: {
-          categoryId: category_id,
+          categoryId: {
+            in: category_id?.map((item) => Number(item)),
+          },
         },
       };
     }
 
-    if (country_id) {
+    if (country_id?.length > 0) {
       // @ts-ignore
       filter.countries = {
         some: {
-          countryId: country_id,
+          countryId: {
+            in: country_id?.map((item) => Number(item)),
+          },
         },
       };
     }
@@ -248,41 +251,31 @@ export class AnimeService {
             },
           },
         },
+        episodes: {
+          select: {
+            id: true,
+            name: true,
+            url: true,
+            type: true,
+          },
+          orderBy: {
+            id: 'desc',
+          },
+        },
       },
     });
 
-    const [episodes_m3u8_url, episodes_iframe_url] = await Promise.all([
-      this.prisma?.episodes?.findMany({
-        where: {
-          animeId: anime?.id,
-          type: 'm3u8',
-        },
-        select: {
-          id: true,
-          name: true,
-          url: true,
-          type: true,
-        },
-      }),
-      this.prisma?.episodes?.findMany({
-        where: {
-          animeId: anime?.id,
-          type: 'iframe',
-        },
-        select: {
-          id: true,
-          name: true,
-          url: true,
-          type: true,
-        },
-      }),
-    ]);
+    if (!anime) {
+      throw ConflictException;
+    }
+
+    const { episodes, ...info } = anime;
 
     return {
       data: {
-        info: anime,
-        episodes_m3u8_url,
-        episodes_iframe_url,
+        info,
+        episodes_m3u8_url: episodes?.filter((item) => item.type === 'm3u8'),
+        episodes_iframe_url: episodes?.filter((item) => item.type === 'iframe'),
       },
     };
   }
@@ -294,16 +287,32 @@ export class AnimeService {
     const page = Number(body?.page) || 1;
     const skip = (page - 1) * limit;
 
-    const animes = (await this.prisma?.$queryRaw(
-      Prisma.sql`
-        SELECT * 
-        FROM animes 
-        WHERE to_tsvector('english', lower(title) || ' ' || lower(other_title) || ' ' || lower(description)) @@ to_tsquery('english', ${q})
-        ORDER BY updated_at DESC
-        LIMIT ${limit}
-        OFFSET ${skip};
-      `,
-    )) as Animes[];
+    const animes = await this.prisma?.animes?.findMany({
+      where: {
+        OR: [
+          {
+            title: {
+              search: q,
+            },
+          },
+          {
+            description: {
+              search: q,
+            },
+          },
+          {
+            other_title: {
+              search: q,
+            },
+          },
+        ],
+      },
+      orderBy: {
+        updated_at: 'desc',
+      },
+      skip,
+      take: limit <= 20 ? limit : 20,
+    });
 
     return {
       data: animes,
